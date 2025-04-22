@@ -33,7 +33,7 @@ class PaymentGateway:
                 'quantity': 1,
             }]
             
-            # Create checkout session with timeout
+            # Create checkout session
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=line_items,
@@ -46,9 +46,7 @@ class PaymentGateway:
                     'phone': booking_data['phone'],
                     'date': booking_data['date'],
                     'time_slot': booking_data['time_slot']
-                },
-                # Add request timeout to prevent hanging
-                request_timeout=30
+                }
             )
             
             return {
@@ -80,7 +78,7 @@ class PaymentGateway:
     def verify_payment(session_id):
         """Verify payment status for a checkout session"""
         try:
-            checkout_session = stripe.checkout.Session.retrieve(session_id, request_timeout=30)
+            checkout_session = stripe.checkout.Session.retrieve(session_id)
             payment_status = checkout_session.payment_status
             
             return {
@@ -116,7 +114,7 @@ class PaymentGateway:
         
         try:
             event = stripe.Webhook.construct_event(
-                payload, sig_header, webhook_secret, request_timeout=30
+                payload, sig_header, webhook_secret
             )
             
             # Handle the event
@@ -167,7 +165,7 @@ class PaymentGateway:
     def get_payment_details(payment_id):
         """Get detailed information about a payment"""
         try:
-            payment_intent = stripe.PaymentIntent.retrieve(payment_id, request_timeout=30)
+            payment_intent = stripe.PaymentIntent.retrieve(payment_id)
             
             return {
                 'success': True,
@@ -206,7 +204,7 @@ class PaymentGateway:
             if amount:
                 refund_params['amount'] = int(amount * 100)  # Convert dollars to cents
                 
-            refund = stripe.Refund.create(**refund_params, request_timeout=30)
+            refund = stripe.Refund.create(**refund_params)
             
             return {
                 'success': True,
