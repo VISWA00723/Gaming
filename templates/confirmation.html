@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Booking Confirmation - NewTurf{% endblock %}
+
+{% block content %}
+<section class="confirmation">
+    <div class="confirmation-box">
+        <div class="confirmation-icon">✓</div>
+        <h1>Booking Confirmed!</h1>
+        <p>Thank you for booking with NewTurf. Your turf has been reserved successfully.</p>
+        
+        <div class="booking-details">
+            <h2>Booking Details</h2>
+            <div class="detail-item">
+                <span class="label">Name:</span>
+                <span class="value">{{ booking.name }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="label">Email:</span>
+                <span class="value">{{ booking.email }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="label">Phone:</span>
+                <span class="value">{{ booking.phone }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="label">Date:</span>
+                <span class="value">{{ booking.date }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="label">Time:</span>
+                <span class="value">{{ booking.time_slot }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="label">Amount Paid:</span>
+                <span class="value">${{ booking.amount }}</span>
+            </div>
+        </div>
+        
+        <div class="ticket-actions">
+            <h2>Your Ticket</h2>
+            <p>Please save your ticket for entry to the turf.</p>
+            <div class="action-buttons">
+                <a href="{{ url_for('ticket', booking_id=booking.id) }}" class="btn btn-primary" target="_blank">View Ticket</a>
+                <a href="{{ url_for('download_ticket', booking_id=booking.id) }}" class="btn btn-secondary">Download Ticket</a>
+            </div>
+        </div>
+        
+        <div class="confirmation-actions">
+            <p>A confirmation email has been sent to {{ booking.email }}</p>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Return to Home</a>
+            <a href="{{ url_for('timeslots') }}" class="btn btn-primary">Book Another Slot</a>
+        </div>
+    </div>
+</section>
+
+<style>
+    .ticket-actions {
+        margin: 30px 0;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        text-align: center;
+    }
+    
+    .ticket-actions h2 {
+        color: #1a237e;
+        margin-bottom: 10px;
+    }
+    
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 15px;
+    }
+</style>
+{% endblock %}

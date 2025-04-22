@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}NewTurf - Book Your Turf{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <h1>Book Your Turf Today</h1>
+        <p>Experience the best turf facilities for your sports activities</p>
+        <a href="{{ url_for('timeslots') }}" class="btn btn-primary">Book Now</a>
+    </div>
+</section>
+
+<section class="features">
+    <h2>Why Choose NewTurf?</h2>
+    <div class="feature-grid">
+        <div class="feature-item">
+            <div class="feature-icon">⚽</div>
+            <h3>Premium Quality</h3>
+            <p>Our turfs are maintained to the highest standards for optimal playing experience</p>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon">⏰</div>
+            <h3>Flexible Timings</h3>
+            <p>Book your preferred time slot from early morning to late night</p>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon">💰</div>
+            <h3>Affordable Rates</h3>
+            <p>Enjoy quality sports facilities without breaking the bank</p>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon">🏆</div>
+            <h3>Tournament Ready</h3>
+            <p>Perfect for friendly matches or organized tournaments</p>
+        </div>
+    </div>
+</section>
+
+<section class="cta">
+    <h2>Ready to Play?</h2>
+    <p>Check available time slots and book your turf now</p>
+    <a href="{{ url_for('timeslots') }}" class="btn btn-secondary">View Time Slots</a>
+</section>
+{% endblock %}

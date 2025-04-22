@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}My Booking History - NewTurf{% endblock %}
+
+{% block content %}
+<div class="history-container">
+    <h2><i class="fas fa-history"></i> My Booking History</h2>
+    {% if bookings %}
+    <div class="table-responsive">
+    <table class="history-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Time Slot</th>
+                <th>Players</th>
+                <th>Status</th>
+                <th>Amount</th>
+                <th>Ticket</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for booking in bookings %}
+            <tr>
+                <td>{{ booking.date }}</td>
+                <td>{{ booking.time_slot }}</td>
+                <td>{{ booking.players }}</td>
+                <td>
+                  {% if booking.payment_status == 'paid' %}
+                    <span class="status-paid">Paid</span>
+                  {% else %}
+                    <span class="status-pending">Pending</span>
+                  {% endif %}
+                </td>
+                <td>${{ '%.2f'|format(booking.amount) }}</td>
+                <td>
+                  {% if booking.payment_status == 'paid' %}
+                    <a href="{{ url_for('ticket', booking_id=booking.id) }}" class="btn btn-primary btn-sm" target="_blank">View Ticket</a>
+                  {% else %}
+                    <span class="no-ticket">-</span>
+                  {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p>You have not made any bookings yet.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.history-container { margin: 40px 0; }
+.history-table { width: 100%; border-collapse: collapse; background: #fff; box-shadow: var(--box-shadow); border-radius: 8px; overflow: hidden; }
+.history-table th, .history-table td { padding: 14px 12px; text-align: center; border-bottom: 1px solid var(--border-color); }
+.history-table th { background: var(--primary-color); color: #fff; font-weight: 600; }
+.status-paid { color: var(--success-color); font-weight: bold; }
+.status-pending { color: var(--danger-color); font-weight: bold; }
+.no-ticket { color: #bbb; }
+.btn-sm { font-size: 0.9rem; padding: 6px 14px; }
+.table-responsive { overflow-x: auto; }
+</style>
+{% endblock %}

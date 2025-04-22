@@ -1,0 +1,590 @@
+{% extends 'base.html' %}
+
+{% block title %}Available Time Slots - NewTurf{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Modern Time Slots Page Styling */
+    .time-slots-container {
+        padding: 30px 0;
+    }
+    
+    .page-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .page-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1a237e;
+        margin-bottom: 15px;
+    }
+    
+    .page-header p {
+        font-size: 1.1rem;
+        color: #757575;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    /* Date Selector Styling */
+    .date-selector {
+        margin-bottom: 40px;
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        padding: 20px;
+    }
+    
+    .date-selector h3 {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+        color: #1a237e;
+        font-weight: 600;
+    }
+    
+    .date-tabs {
+        display: flex;
+        overflow-x: auto;
+        gap: 10px;
+        padding-bottom: 10px;
+        scrollbar-width: thin;
+        scrollbar-color: #2196f3 #e3f2fd;
+    }
+    
+    .date-tabs::-webkit-scrollbar {
+        height: 6px;
+    }
+    
+    .date-tabs::-webkit-scrollbar-track {
+        background: #e3f2fd;
+        border-radius: 10px;
+    }
+    
+    .date-tabs::-webkit-scrollbar-thumb {
+        background-color: #2196f3;
+        border-radius: 10px;
+    }
+    
+    .date-tab {
+        flex: 0 0 auto;
+        padding: 12px 20px;
+        background-color: #f5f5f5;
+        border: none;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 100px;
+    }
+    
+    .date-tab .day-name {
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+    }
+    
+    .date-tab .date-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+    
+    .date-tab:hover {
+        background-color: #e3f2fd;
+        transform: translateY(-2px);
+    }
+    
+    .date-tab.active {
+        background-color: #2196f3;
+        color: #fff;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+    }
+    
+    /* Time Slots Grid Styling */
+    .slot-container {
+        margin-bottom: 40px;
+    }
+    
+    .date-slots {
+        display: none;
+    }
+    
+    .date-slots.active {
+        display: block;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .date-slots h3 {
+        font-size: 1.3rem;
+        margin-bottom: 20px;
+        color: #1a237e;
+        font-weight: 600;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e3f2fd;
+    }
+    
+    .slots-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 15px;
+    }
+    
+    .time-slot {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .time-slot::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+        background-color: #2196f3;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .time-slot.available {
+        cursor: pointer;
+    }
+    
+    .time-slot.available:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .time-slot.available:hover::before {
+        opacity: 1;
+    }
+    
+    .time-slot.booked {
+        background-color: #f9f9f9;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+    
+    .time-slot.booked::before {
+        background-color: #f44336;
+        opacity: 1;
+    }
+    
+    .time-slot.selected {
+        background-color: #e3f2fd;
+        border: 2px solid #2196f3;
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(33, 150, 243, 0.2);
+    }
+    
+    .time-slot.selected::before {
+        background-color: #2196f3;
+        opacity: 1;
+    }
+    
+    .time-slot .time {
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+        color: #1a237e;
+    }
+    
+    .time-slot .status {
+        font-size: 0.85rem;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+    
+    .time-slot.available .status {
+        background-color: #e8f5e9;
+        color: #388e3c;
+    }
+    
+    .time-slot.booked .status {
+        background-color: #ffebee;
+        color: #d32f2f;
+    }
+    
+    .time-slot.selected .status {
+        background-color: #e3f2fd;
+        color: #1976d2;
+    }
+    
+    /* Booking Form Styling */
+    .booking-form {
+        display: none;
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        margin-top: 40px;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .booking-form.active {
+        display: block;
+        animation: slideUp 0.5s ease;
+    }
+    
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .booking-form h2 {
+        font-size: 1.8rem;
+        color: #1a237e;
+        margin-bottom: 25px;
+        text-align: center;
+        position: relative;
+        padding-bottom: 15px;
+    }
+    
+    .booking-form h2::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 3px;
+        background-color: #2196f3;
+    }
+    
+    .form-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #455a64;
+    }
+    
+    .form-group input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-group input:focus {
+        border-color: #2196f3;
+        box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
+        outline: none;
+    }
+    
+    .form-summary {
+        grid-column: 1 / -1;
+        background-color: #f5f9ff;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+        border-left: 4px solid #2196f3;
+    }
+    
+    .form-summary h3 {
+        margin-bottom: 15px;
+        color: #1a237e;
+        font-size: 1.2rem;
+    }
+    
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 1rem;
+    }
+    
+    .summary-item .label {
+        font-weight: 500;
+        color: #455a64;
+    }
+    
+    .summary-item .value {
+        font-weight: 600;
+        color: #1a237e;
+    }
+    
+    .summary-item.total {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #e0e0e0;
+        font-size: 1.2rem;
+    }
+    
+    .form-actions {
+        grid-column: 1 / -1;
+        text-align: center;
+        margin-top: 20px;
+    }
+    
+    .btn-book {
+        padding: 14px 30px;
+        background-color: #2196f3;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+    }
+    
+    .btn-book:hover {
+        background-color: #1976d2;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(33, 150, 243, 0.4);
+    }
+    
+    .btn-book:active {
+        transform: translateY(0);
+    }
+    
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .form-layout {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        .slots-grid {
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        }
+        
+        .booking-form {
+            padding: 20px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .date-tab {
+            min-width: 80px;
+            padding: 10px 15px;
+        }
+        
+        .slots-grid {
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="time-slots-container">
+    <div class="page-header">
+        <h1>Book Your Turf Time</h1>
+        <p>Select your preferred date and time slot to reserve the turf for your game</p>
+    </div>
+    
+    <div class="date-selector">
+        <h3>Select Date</h3>
+        <div class="date-tabs">
+            {% for date in dates %}
+            {% set date_obj = date.split('-') %}
+            {% set day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+            {% set day_index = loop.index0 % 7 %}
+            <div class="date-tab {% if loop.index == 1 %}active{% endif %}" data-date="{{ date }}">
+                <span class="day-name">{{ day_names[day_index] }}</span>
+                <span class="date-value">{{ date_obj[2] }}/{{ date_obj[1] }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="slot-container">
+        {% for date in dates %}
+        <div class="date-slots {% if loop.index == 1 %}active{% endif %}" id="date-{{ date }}">
+            <h3>Available Times for {{ date }}</h3>
+            <div class="slots-grid">
+                {% for time_slot in time_slots %}
+                <div class="time-slot {% if date in booked_slots and time_slot in booked_slots[date] %}booked{% else %}available{% endif %}" 
+                     data-date="{{ date }}" 
+                     data-time="{{ time_slot }}">
+                    <span class="time">{{ time_slot }}</span>
+                    <span class="status">
+                        {% if date in booked_slots and time_slot in booked_slots[date] %}
+                            Booked
+                        {% else %}
+                            Available
+                        {% endif %}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="booking-form" id="booking-form">
+        <h2>Complete Your Booking</h2>
+        <form action="{{ url_for('booking') }}" method="post">
+            <input type="hidden" name="date" id="selected-date">
+            <input type="hidden" name="time_slot" id="selected-time">
+            
+            <div class="form-layout">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" required placeholder="Enter your full name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required placeholder="Enter your email">
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" required placeholder="Enter your phone number">
+                </div>
+                
+                <div class="form-group">
+                    <label for="players">Number of Players</label>
+                    <input type="number" id="players" name="players" min="2" max="22" value="10" required>
+                </div>
+                
+                <div class="form-summary">
+                    <h3>Booking Summary</h3>
+                    <div class="summary-item">
+                        <span class="label">Date:</span>
+                        <span class="value" id="summary-date"></span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">Time:</span>
+                        <span class="value" id="summary-time"></span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">Duration:</span>
+                        <span class="value">1 hour</span>
+                    </div>
+                    <div class="summary-item total">
+                        <span class="label">Total Price:</span>
+                        <span class="value">$50.00</span>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-book">Proceed to Payment</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Date tab selection
+        const dateTabs = document.querySelectorAll('.date-tab');
+        const dateSlots = document.querySelectorAll('.date-slots');
+        
+        dateTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Remove active class from all tabs and slots
+                dateTabs.forEach(t => t.classList.remove('active'));
+                dateSlots.forEach(s => s.classList.remove('active'));
+                
+                // Add active class to selected tab
+                this.classList.add('active');
+                
+                // Show slots for selected date
+                const date = this.getAttribute('data-date');
+                document.getElementById('date-' + date).classList.add('active');
+            });
+        });
+        
+        // Time slot selection
+        const timeSlots = document.querySelectorAll('.time-slot.available');
+        const bookingForm = document.getElementById('booking-form');
+        const selectedDate = document.getElementById('selected-date');
+        const selectedTime = document.getElementById('selected-time');
+        const summaryDate = document.getElementById('summary-date');
+        const summaryTime = document.getElementById('summary-time');
+        
+        timeSlots.forEach(slot => {
+            slot.addEventListener('click', function() {
+                // Remove selected class from all slots
+                timeSlots.forEach(s => s.classList.remove('selected'));
+                
+                // Add selected class to clicked slot
+                this.classList.add('selected');
+                
+                // Update form values
+                const date = this.getAttribute('data-date');
+                const time = this.getAttribute('data-time');
+                selectedDate.value = date;
+                selectedTime.value = time;
+                summaryDate.textContent = date;
+                summaryTime.textContent = time;
+                
+                // Show booking form
+                bookingForm.classList.add('active');
+                
+                // Scroll to booking form
+                bookingForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+        
+        // Form validation
+        const bookingFormElement = document.querySelector('form');
+        bookingFormElement.addEventListener('submit', function(e) {
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            
+            if (!name || !email || !phone) {
+                e.preventDefault();
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                e.preventDefault();
+                alert('Please enter a valid email address');
+                return;
+            }
+            
+            // Phone validation
+            const phoneRegex = /^[0-9\+\-\s]+$/;
+            if (!phoneRegex.test(phone)) {
+                e.preventDefault();
+                alert('Please enter a valid phone number');
+                return;
+            }
+        });
+    });
+</script>
+{% endblock %}
